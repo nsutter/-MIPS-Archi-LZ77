@@ -21,6 +21,7 @@ syscall
 
 # On stocke le descripteur du fichier dans t2
 move $t2, $v0
+move $a0, $v0
 
 # Affichage 1
 li $a2 50
@@ -44,10 +45,10 @@ Lecture:
 	sw $a0 4($sp)
 	sw $a1 8($sp)
 
-	move $a0, $t2
 	li $v0, 14
 	la $a1, buffer
-	syscall  
+	syscall
+
 	la $a0, buffer
 	li $v0, 4
 	syscall
