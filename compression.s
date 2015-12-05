@@ -51,6 +51,15 @@ Lecture:
 	la $a0, buffer
 	li $v0, 4
 	syscall
+	
+	la $a0, toast
+	li $v0,4
+	syscall
+	#C'EST PAR LA QUE CA SE PASSE
+	la $t0, buffer
+	lb $a0, 2($t0)#REMPLACE LE DEUX PAR LA POSITION DE LA LETTRE SOUHAITER
+	li $v0, 11
+	syscall
 
 	lw $ra 0($sp)
 	lw $a0 4($sp)
