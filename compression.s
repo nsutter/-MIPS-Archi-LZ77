@@ -1,6 +1,10 @@
 .data
-filename: .asciiz "./Pirouette.txt" # nom du fichier
-textSpace: .space 1050
+nom_fichier: .asciiz "./Pirouette.txt" # nom du fichier
+
+saut_ligne: .asciiz "\n"
+toast: .asciiz "\n------------\n"
+
+buffer: .space 1050
 
 .text
 #N=11 F=5
@@ -9,20 +13,39 @@ li $t1 5
 
 #Ouverture du fichier
 li $v0 13
-la $a0, filename
+la $a0, nom_fichier
 li $a1, 0 # ouverture pour écriture
 li $a2, 0
 syscall        
 
-# Lecture et affichage du fichier
-move $a0, $v0 # charge le descripteur de fichier
+# On stocke le descripteur du fichier dans t2
+move $t2, $v0
+
+# Affichage 1
+li $a2 50
+jal Lecture
+
+la $a0, toast
+li $v0,4
+syscall
+
+# Affichage 2
+li $a2 100
+jal Lecture
+
+j exit
+
+# Lecture d'un fichier
+# a2 la taille
+Lecture:
+move $a0, $t2
 li $v0, 14
-la $a1, textSpace
-li $a2, 1050
+la $a1, buffer
 syscall  
-la $a0, textSpace
+la $a0, buffer
 li $v0, 4
 syscall
+jr $ra
 
 exit:
 li $v0 10
