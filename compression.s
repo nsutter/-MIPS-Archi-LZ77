@@ -25,18 +25,19 @@ write:				#ecrit dans le fichier lz77 le 10 caractères dans $s1
 
 #Ouverture du fichier
 li $v0 13
-la $a0, filename # output file name
-li $a1, 0        # Open for writing (flags are 0: read, 1: write)
-li $a2, 0        # mode is ignored
+la $a0, filename
+li $a1, 0 # ouverture pour Ã©criture
+li $a2, 0
 syscall        
 
-move $a0, $v0        # load file descriptor
-li $v0, 14           #read from file
-la $a1, textSpace        # allocate space for the bytes loaded
-li $a2, 1050         # number of bytes to be read
+# Lecture et affichage du fichier
+move $a0, $v0 # charge le descripteur de fichier
+li $v0, 14
+la $a1, textSpace
+li $a2, 1050
 syscall  
-la $a0, textSpace        # address of string to be printed
-li $v0, 4            # print string
+la $a0, textSpace
+li $v0, 4
 syscall
 
 exit:
