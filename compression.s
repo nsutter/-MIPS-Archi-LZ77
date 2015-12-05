@@ -71,7 +71,7 @@ create:
 write:
 	li $v0, 15
 	move $a0, $t3
-	la $a1, $s1
+	la $a1, ($s1)
 	li $a2, 10
 	syscall
 
