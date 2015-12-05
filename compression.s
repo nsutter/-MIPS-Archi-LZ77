@@ -66,6 +66,7 @@ create:
 	li $a2, 0
 	syscall
 	move $t3, $v0
+	jr $ra
 
 # Ecrit dans le fichier lz77 le 10 caracteres dans $s1
 write:
@@ -74,6 +75,18 @@ write:
 	la $a1, ($s1)
 	li $a2, 10
 	syscall
+	jr $ra
+
+#ferme les fichiers dans $t2 et $t3
+close:
+	li   $v0, 16      
+	move $a0, $t2    
+	syscall  
+	li   $v0, 16      
+	move $a0, $t3    
+	syscall 
+	jr $ra
+
 
 exit:
 li $v0 10
