@@ -1,3 +1,3 @@
-# -MIPS-Archi-LZ77
-Projet architecture des ordinateurs: compression de fichiers avec l'algorithme LZ77 en MIPS
+# ArchiLZ77
+Projet Architecture des Ordinateurs : compression de fichiers avec l'algorithme LZ77 en MIPS
 
