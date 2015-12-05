@@ -1,6 +1,6 @@
 .data
-filename: .asciiz "./pirouette.txt" #file name
-textSpace: .space 1050     #space to store strings to be read
+filename: .asciiz "./Pirouette.txt" # nom du fichier
+textSpace: .space 1050
 
 .text
 #N=11 F=5
