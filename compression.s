@@ -1,5 +1,5 @@
 .data
-nom_fichier: .asciiz "./Pirouette.txt" # nom du fichier
+nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier
 
 saut_ligne: .asciiz "\n"
 toast: .asciiz "\n------------\n"
@@ -75,5 +75,6 @@ write:
 	li $a2, 10
 	syscall
 
+exit:
 li $v0 10
 syscall
