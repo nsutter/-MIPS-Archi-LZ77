@@ -52,6 +52,15 @@ Lecture:
 	la $a0, buffer
 	li $v0, 4
 	syscall
+	
+	la $a0, toast
+	li $v0,4
+	syscall
+	#C'EST PAR LA QUE CA SE PASSE
+	la $t0, buffer
+	lb $a0, 2($t0)#REMPLACE LE DEUX PAR LA POSITION DE LA LETTRE SOUHAITER
+	li $v0, 11
+	syscall
 
 	lw $ra 0($sp)
 	lw $a0 4($sp)
@@ -61,6 +70,12 @@ Lecture:
 
 # Creer un fichier avec le nom cre
 create:
+	subiu $sp $sp 16
+	sw $ra 0($sp)
+	sw $a0 4($sp)
+	sw $a1 8($sp)
+	sw $a2 12($sp)
+
 	li $v0, 13
 	la $a0, cre
 	li $a1, 1
@@ -68,13 +83,56 @@ create:
 	syscall
 	move $t3, $v0
 
+	lw $ra 0($sp)
+	lw $a0 4($sp)
+	lw $a1 8($sp)
+	lw $a2 12($sp)
+	addiu $sp $sp 16
+	jr $ra
+
 # Ecrit dans le fichier lz77 le 10 caracteres dans $s1
 write:
+	subiu $sp $sp 16
+	sw $ra 0($sp)
+	sw $a0 4($sp)
+	sw $a1 8($sp)
+	sw $a2 12($sp)
+
 	li $v0, 15
 	move $a0, $t3
 	la $a1, ($s1)
 	li $a2, 10
 	syscall
+	
+	lw $ra 0($sp)
+	lw $a0 4($sp)
+	lw $a1 8($sp)
+	lw $a2 12($sp)
+	addiu $sp $sp 16
+	jr $ra
+
+#ferme les fichiers dans $t2 et $t3
+close:
+	subiu $sp $sp 16
+	sw $ra 0($sp)
+	sw $a0 4($sp)
+	sw $a1 8($sp)
+	sw $a2 12($sp)
+
+	li   $v0, 16      
+	move $a0, $t2    
+	syscall  
+	li   $v0, 16      
+	move $a0, $t3    
+	syscall 
+
+	lw $ra 0($sp)
+	lw $a0 4($sp)
+	lw $a1 8($sp)
+	lw $a2 12($sp)
+	addiu $sp $sp 16
+	jr $ra
+
 
 exit:
 li $v0 10
