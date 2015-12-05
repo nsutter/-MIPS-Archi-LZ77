@@ -12,23 +12,6 @@ cre: .asciiz "./test.lz77" # nom du fichier ecrit
 li $t0 11
 li $t1 5
 
-# Creer un fichier avec le nom cre
-create:
-	li $v0, 13
-	la $a0, cre
-	li $a1, 1
-	li $a2, 0
-	syscall
-	move $t3, $v0
-
-# Ecrit dans le fichier lz77 le 10 caracteres dans $s1
-write:
-	li $v0, 15
-	move $a0, $t3
-	la $a1, $s1
-	li $a2, 10
-	syscall
-
 #Ouverture du fichier
 li $v0 13
 la $a0, nom_fichier
@@ -75,6 +58,22 @@ Lecture:
 	addiu $sp $sp 12
 	jr $ra
 
-exit:
+# Creer un fichier avec le nom cre
+create:
+	li $v0, 13
+	la $a0, cre
+	li $a1, 1
+	li $a2, 0
+	syscall
+	move $t3, $v0
+
+# Ecrit dans le fichier lz77 le 10 caracteres dans $s1
+write:
+	li $v0, 15
+	move $a0, $t3
+	la $a1, $s1
+	li $a2, 10
+	syscall
+
 li $v0 10
 syscall
