@@ -53,7 +53,7 @@ Lecture:
 	syscall
 	#C'EST PAR LA QUE CA SE PASSE
 	la $t0, buffer
-	lb $a0, 0($t0)#REMPLACE LE DEUX PAR LA POSITION DE LA LETTRE SOUHAITER
+	lb $a0, 0($t0)#REMPLACE LE ZERO PAR LA POSITION DE LA LETTRE SOUHAITER
 	li $v0, 11
 	syscall
 
@@ -104,6 +104,11 @@ write:
 	lw $a1 8($sp)
 	lw $a2 12($sp)
 	addiu $sp $sp 16
+	jr $ra
+
+#teste si il y a encore du texte a lire
+end:
+	
 	jr $ra
 
 #ferme les fichiers dans $t2 et $t3
