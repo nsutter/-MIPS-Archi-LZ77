@@ -31,10 +31,6 @@ la $a0, toast
 li $v0,4
 syscall
 
-# Affichage 2
-li $a2 100
-jal Lecture
-
 j exit
 
 # Lecture d'un fichier
@@ -58,7 +54,7 @@ Lecture:
 	syscall
 	#C'EST PAR LA QUE CA SE PASSE
 	la $t0, buffer
-	lb $a0, 2($t0)#REMPLACE LE DEUX PAR LA POSITION DE LA LETTRE SOUHAITER
+	lb $a0, 0($t0)#REMPLACE LE DEUX PAR LA POSITION DE LA LETTRE SOUHAITER
 	li $v0, 11
 	syscall
 
