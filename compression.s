@@ -2,10 +2,12 @@
   nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier
 
   saut_ligne: .asciiz "\n"
-  toast: .asciiz "\n------------\n"
+  toast: .asciiz "\n-\n"
 
   buffer: .space 1050
-  cre: .asciiz "./test.lz77" # nom du fichier ecrit
+  buffer_cre: .space 1050
+
+  cre: .asciiz "./test.lz77" # nom du fichier de sortie
 
 .text
   # N=6 F=5
@@ -29,45 +31,53 @@
   li $a2, 1050 # taille du buffer en dur
   syscall
 
-  #### FIN Ouverture et lecture du fichier
+  #### FIN
 
   jal create
-
+  
+  li $a2 2
   jal CreerTampon
 
-  j exit
+  la $a0 buffer_cre
+  li $v0 4
+  syscall
 
-  #### DEBUT Fonction de creation tampon
+  j Exit
+
+  #### DEBUT Fonction de creation tampon ($a2 la position initiale du tampon)
   CreerTampon:
     subiu $sp $sp 20
     sw $ra 0($sp)
     sw $a0 4($sp)
     sw $a1 8($sp)
-    sw $a2 12($sp)
-    sw $s1 16($sp)
+    sw $s1 12($sp)
+    sw $s2 16($sp)
 
-    li $s1 0
+    move $s1 $a2
+
+    la $s2, buffer
+    add $s2 $s2 $s1
+
+    li $s3 0
 
     add $a1 $t0 $t1
+    add $a1 $a1 $s1
     RappelTampon:
-      jal Extraction
+      lb $a0, 0($s2)
+      sb $a0, buffer_cre($s3)
       addi $s1 $s1 1
-      addi $t4 $t4 1
+      addi $s2 $s2 1
+      addi $s3 $s3 1
       bne $s1 $a1 RappelTampon
+
+    #sb $zero buffer_cre($s1)
 
     lw $ra 0($sp)
     lw $a0 4($sp)
     lw $a1 8($sp)
-    lw $a2 12($sp)
     lw $s1 12($sp)
+    sw $s2 16($sp)
     addiu $sp $sp 20
-    jr $ra
-
-  # Recupere le 
-  Extraction:
-    la $t5, buffer
-    add $t5 $t5 $s1
-    lb $a0, 0($t5)
     jr $ra
 
   # Creer un fichier avec le nom cre
