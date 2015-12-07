@@ -107,16 +107,7 @@ write:
 	addiu $sp $sp 16
 	jr $ra
 
-<<<<<<< HEAD
-#teste si il y a encore du texte a lire
-end:
-	
-	jr $ra
-
-#ferme les fichiers dans $t2 et $t3
-=======
 # Ferme les fichiers dans $t2 et $t3
->>>>>>> 2e5e3a6455709e7f9a91f295a6e2ebd4046b74ca
 close:
 	subiu $sp $sp 16
 	sw $ra 0($sp)
