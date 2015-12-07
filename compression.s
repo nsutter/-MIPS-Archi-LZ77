@@ -34,8 +34,8 @@ jal create
 
 jal CreerTampon
 
-move $a0 $t4
-li $v0 4
+lb $a0 0($t4)
+li $v0 11
 syscall
 
 j exit
@@ -51,14 +51,12 @@ CreerTampon:
 
   li $s1 0
 
-  la $a2 ($t4)
-
   add $a1 $t0 $t1
   RappelTampon:
     jal Extraction
-    move $a2 $a0
+    lb $t4 0($a0)
     addi $s1 $s1 1
-    addi $a2 $a2 1
+    addi $t4 $t4 1
     bne $s1 $a1 RappelTampon
 
   lw $ra 0($sp)
