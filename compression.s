@@ -34,10 +34,6 @@ jal create
 
 jal CreerTampon
 
-lb $a0 0($t4)
-li $v0 11
-syscall
-
 j exit
 
 #### DEBUT Fonction de creation tampon
@@ -54,9 +50,8 @@ CreerTampon:
   add $a1 $t0 $t1
   RappelTampon:
     jal Extraction
-    lb $t4 0($a0)
     addi $s1 $s1 1
-    addi $t4 $t4 1
+	addi $t4 $t4 1
     bne $s1 $a1 RappelTampon
 
   lw $ra 0($sp)
@@ -69,9 +64,9 @@ CreerTampon:
 
 # Recupere le 
 Extraction:
-	la $t0, buffer
-	add $t0 $t0 $s1
-	lb $a0, 0($t0)
+	la $t5, buffer
+	add $t5 $t5 $s1
+	lb $a0, 0($t5)
 	jr $ra
 
 
