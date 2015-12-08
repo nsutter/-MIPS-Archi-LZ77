@@ -4,8 +4,8 @@
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
 
-  buffer: .space 1050
-  buffer_cre: .space 1050
+  buffer: .space 1600
+  buffer_cre: .space 1600
 
   cre: .asciiz "./test.lz77" # nom du fichier de sortie
 
@@ -28,23 +28,30 @@
   move $a0, $t2
   li $v0, 14
   la $a1, buffer
-  li $a2, 1050 # taille du buffer en dur
+  li $a2, 1600 # taille du buffer en dur
   syscall
 
   #### FIN
 
   jal create
-  
-  li $a2 2
+
+  li $a2 0
   jal CreerTampon
 
   la $a0 buffer_cre
   li $v0 4
   syscall
 
+  jal TestTamponVide
+
+  move $a0 $v0
+  li $v0 1
+  syscall
+
   j Exit
 
-  #### DEBUT Fonction de creation tampon ($a2 la position initiale du tampon)
+  #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_cre)
+
   CreerTampon:
     subiu $sp $sp 20
     sw $ra 0($sp)
@@ -70,15 +77,43 @@
       addi $s3 $s3 1
       bne $s1 $a1 RappelTampon
 
-    #sb $zero buffer_cre($s1)
-
     lw $ra 0($sp)
     lw $a0 4($sp)
     lw $a1 8($sp)
     lw $s1 12($sp)
+    lw $s2 16($sp)
+    addiu $sp $sp 20
+    jr $ra
+
+  #### FIN
+
+  #### DEBUT TestTamponVide (buffer_cre -> $v0 (0 si vide, 1 sinon))
+
+  TestTamponVide:
+    subiu $sp $sp 4
+    sw $s0 0($sp)
+
+    la $s0, buffer_cre
+    add $s0 $s0 $t0
+
+    move $a0 $s0
+    li $v0 4
+    syscall
+
+    beqz $s0 Vide
+
+    li $v0 1
     sw $s2 16($sp)
     addiu $sp $sp 20
     jr $ra
+
+    Vide:
+    li $v0 0
+    lw $s0 0($sp)
+    addiu $sp $sp 4
+    jr $ra
+
+  #### FIN
 
   # Creer un fichier avec le nom cre
   create:
