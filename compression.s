@@ -1,5 +1,9 @@
 .data
   nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier
+  cre: .asciiz "./test.lz77" # nom du fichier de sortie
+  parenthese_o: .byte '('
+  parenthese_f: .byte ')'
+  virgule: .byte ','
 
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
@@ -9,8 +13,8 @@
   buffer_tampon: .space 11
   buffer_id: .space 5
   buffer_id_max: .space 5
-
-  cre: .asciiz "./test.lz77" # nom du fichier de sortie
+  #buffer_cre: .space 1600
+  buffer_write: .space 7
 
 .text
   # N=6 F=5
@@ -38,42 +42,33 @@
 
   jal create
 
-  li $a2 0
+  li $a3 0 # CreerTampon commence a 0
+
+  MainLoop:
   jal CreerTampon
-
-  #jal TestTamponVide
-
-  la $a0 buffer_tampon
-  li $v0 4
-  syscall
-
-  la $a0 toast
-  li $v0 4
-  syscall
-
+  jal TestTamponVide
+  beq $v0 0 Exit
   jal Recherche
-
-  la $a0 buffer_id_max
-  li $v0 4
-  syscall
-
-  la $a0 toast
-  li $v0 4
-  syscall
-
-  move $a0 $t7
-  li $v0 1
-  syscall
-
-  la $a0 toast
-  li $v0 4
-  syscall
-
+  beq $t7 0 RechercheFail
   move $a0 $t5
-  li $v0 1
-  syscall
+  move $a1 $t7
+  la $s0 buffer
+  add $s0 $s0 $a3
+  addi $s0 $s0 11
+  lb $a2 0($s0)
+  jal formate
+  j MainLoop
 
-  j Exit
+  RechercheFail:
+  li $a0 '0'
+  li $a1 '0'
+  la $s0 buffer
+  add $s0 $s0 $a3
+  addi $s0 $s0 6
+  lb $a2 0($s0)
+  jal formate
+  addi $a3 $a3 1
+  j MainLoop
 
   #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_tampon)
 
@@ -85,7 +80,7 @@
     sw $s1 12($sp)
     sw $s2 16($sp)
 
-    move $s1 $a2
+    move $s1 $a3
 
     la $s2, buffer
     add $s2 $s2 $s1
@@ -276,6 +271,34 @@
     addiu $sp $sp 16
     jr $ra
 
+  formate:
+    subiu $sp $sp 16
+    sw $ra 0($sp)
+    sw $t6 4($sp)
+    sw $t5 8($sp)
+    sw $t4 12($sp)
+
+    la $s1 buffer_write
+    lb $t6 parenthese_o
+    lb $t5 parenthese_f
+    lb $t4 virgule
+
+    sb $t6 0($s1)
+    sb $a0 1($s1)
+    sb $t4 2($s1)
+    sb $a1 3($s1)
+    sb $t4 4($s1)
+    sb $a2 5($s1)
+    sb $t5 6($s1)
+    jal write
+
+    lw $t4 12($sp)
+    lw $t5 8($sp)
+    lw $t6 4($sp)
+    lw $ra 0($sp)
+    addiu $sp $sp 16
+    jr $ra
+
   # Ecrit dans le fichier lz77 les 10 caracteres dans $s1
   write:
     subiu $sp $sp 16
@@ -286,8 +309,8 @@
 
     li $v0, 15
     move $a0, $t3
-    la $a1, ($s1)
-    li $a2, 10
+    la $a1, buffer_write
+    li $a2, 7
     syscall
 
     lw $ra 0($sp)
