@@ -35,16 +35,12 @@
 
   jal create
 
-  li $a2 0
+  li $a2 1105
   jal CreerTampon
-
-  la $a0 buffer_cre
-  li $v0 4
-  syscall
 
   jal TestTamponVide
 
-  move $a0 $v0
+  move $a0 $a3
   li $v0 1
   syscall
 
@@ -90,28 +86,29 @@
   #### DEBUT TestTamponVide (buffer_cre -> $v0 (0 si vide, 1 sinon))
 
   TestTamponVide:
-    subiu $sp $sp 4
+    subiu $sp $sp 8
     sw $s0 0($sp)
+	sw $t6 4($sp)
 
     la $s0, buffer_cre
     add $s0 $s0 $t0
 
-    move $a0 $s0
-    li $v0 4
-    syscall
+	lb $t6 0($s0)
+	
+    beqz $t6, vide
 
-    beqz $s0 Vide
-
-    li $v0 1
-    sw $s2 16($sp)
-    addiu $sp $sp 20
-    jr $ra
-
-    Vide:
-    li $v0 0
+    li $a3 1
     lw $s0 0($sp)
-    addiu $sp $sp 4
+	lw $t6 4($sp)
+    addiu $sp $sp 8
     jr $ra
+
+    vide:
+   	 li $a3 0
+     lw $s0 0($sp)
+	 lw $t6 4($sp)
+   	 addiu $sp $sp 8
+     jr $ra
 
   #### FIN
 
