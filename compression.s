@@ -1,13 +1,16 @@
 .data
   nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier
+  cre: .asciiz "./test.lz77" # nom du fichier de sortie
+  parenthese_o: .byte '('
+  parenthese_f: .byte ')'
+  virgule: .byte ','
 
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
 
   buffer: .space 1600
   buffer_cre: .space 1600
-
-  cre: .asciiz "./test.lz77" # nom du fichier de sortie
+  buffer_write: .space 7
 
 .text
   # N=6 F=5
@@ -38,7 +41,7 @@
   li $a2 1105
   jal CreerTampon
 
-  jal TestTamponVide
+  jal TestTamponVides
 
   j Exit
 
@@ -84,12 +87,12 @@
   TestTamponVide:
     subiu $sp $sp 8
     sw $s0 0($sp)
-	sw $t6 4($sp)
+	  sw $t6 4($sp)
 
     la $s0, buffer_cre
     add $s0 $s0 $t0
 
-	lb $t6 0($s0)
+   	lb $t6 0($s0)
 
     beqz $t6, vide
 
@@ -130,6 +133,34 @@
     addiu $sp $sp 16
     jr $ra
 
+  formate:
+    subiu $sp $sp 16
+    sw $ra 0($sp)
+    sw $t6 4($sp)
+    sw $t5 8($sp)
+    sw $t4 12($sp)
+
+    la $s1 buffer_write
+    lb $t6 parenthese_o
+    lb $t5 parenthese_f
+    lb $t4 virgule
+
+    sb $t6 0($s1)
+    sb $a0 1($s1)
+    sb $t4 2($s1)
+    sb $a1 3($s1)
+    sb $t4 4($s1)
+    sb $a2 5($s1)
+    sb $t5 6($s1)
+    jal write
+
+    lw $t4 12($sp)
+    lw $t5 8($sp)
+    lw $t6 4($sp)
+    lw $ra 0($sp)
+    addiu $sp $sp 16
+    jr $ra
+
   # Ecrit dans le fichier lz77 les 10 caracteres dans $s1
   write:
     subiu $sp $sp 16
@@ -140,8 +171,8 @@
 
     li $v0, 15
     move $a0, $t3
-    la $a1, ($s1)
-    li $a2, 10
+    la $a1, buffer_write
+    li $a2, 20
     syscall
 
     lw $ra 0($sp)
