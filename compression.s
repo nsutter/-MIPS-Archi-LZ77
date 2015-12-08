@@ -40,10 +40,6 @@
 
   jal TestTamponVide
 
-  move $a0 $a3
-  li $v0 1
-  syscall
-
   j Exit
 
   #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_cre)
@@ -94,19 +90,19 @@
     add $s0 $s0 $t0
 
 	lb $t6 0($s0)
-	
+
     beqz $t6, vide
 
-    li $a3 1
+    li $v0 1
     lw $s0 0($sp)
-	lw $t6 4($sp)
+	  lw $t6 4($sp)
     addiu $sp $sp 8
     jr $ra
 
     vide:
-   	 li $a3 0
+   	 li $v0 0
      lw $s0 0($sp)
-	 lw $t6 4($sp)
+	   lw $t6 4($sp)
    	 addiu $sp $sp 8
      jr $ra
 
