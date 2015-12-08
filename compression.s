@@ -3,9 +3,12 @@
 
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
+  aaa: .asciiz "aaa"
 
   buffer: .space 1600
-  buffer_cre: .space 1600
+  buffer_tampon: .space 11
+  buffer_id: .space 5
+  buffer_id_max: .space 5
 
   cre: .asciiz "./test.lz77" # nom du fichier de sortie
 
@@ -35,14 +38,44 @@
 
   jal create
 
-  li $a2 1105
+  li $a2 0
   jal CreerTampon
 
-  jal TestTamponVide
+  #jal TestTamponVide
+
+  la $a0 buffer_tampon
+  li $v0 4
+  syscall
+
+  la $a0 toast
+  li $v0 4
+  syscall
+
+  jal Recherche
+
+  la $a0 buffer_id_max
+  li $v0 4
+  syscall
+
+  la $a0 toast
+  li $v0 4
+  syscall
+
+  move $a0 $t7
+  li $v0 1
+  syscall
+
+  la $a0 toast
+  li $v0 4
+  syscall
+
+  move $a0 $t5
+  li $v0 1
+  syscall
 
   j Exit
 
-  #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_cre)
+  #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_tampon)
 
   CreerTampon:
     subiu $sp $sp 20
@@ -63,7 +96,7 @@
     add $a1 $a1 $s1
     RappelTampon:
       lb $a0, 0($s2)
-      sb $a0, buffer_cre($s3)
+      sb $a0, buffer_tampon($s3)
       addi $s1 $s1 1
       addi $s2 $s2 1
       addi $s3 $s3 1
@@ -79,17 +112,17 @@
 
   #### FIN
 
-  #### DEBUT TestTamponVide (buffer_cre -> $v0 (0 si vide, 1 sinon))
+  #### DEBUT TestTamponVide (buffer_tampon -> $v0 (0 si vide, 1 sinon))
 
   TestTamponVide:
     subiu $sp $sp 8
     sw $s0 0($sp)
-	sw $t6 4($sp)
+    sw $t6 4($sp)
 
-    la $s0, buffer_cre
+    la $s0, buffer_tampon
     add $s0 $s0 $t0
 
-	lb $t6 0($s0)
+    lb $t6 0($s0)
 
     beqz $t6, vide
 
@@ -105,6 +138,119 @@
 	   lw $t6 4($sp)
    	 addiu $sp $sp 8
      jr $ra
+
+  #### FIN
+
+  #### DEBUT Recherche (-> t5 la position, t7 la taille)
+
+  Recherche:
+  subiu $sp $sp 48
+  sw $ra 0($sp)
+  sw $a0 4($sp)
+  sw $a1 8($sp)
+  sw $s0 12($sp)
+  sw $s1 16($sp)
+  sw $s2 20($sp)
+  sw $s3 24($sp)
+  sw $s4 28($sp)
+  sw $s5 32($sp)
+  sw $s6 36($sp)
+  sw $s7 40($sp)
+  sw $t6 44($sp)
+
+  li $s5 0 # offset du buffer_id
+
+  #la $s6 buffer_id
+  #la $s7 buffer_id_max
+
+  li $t5 0 # position p
+  li $t6 0 # longueur en cours
+  li $t7 0 # longueur max
+
+  la $s0 buffer_tampon
+  add $s1 $s0 $t0
+
+  move $s2 $s0
+  move $s3 $s1
+
+  add $s4 $s1 $t1
+
+  Loop:
+
+  li $t6 0
+  lb $a1 0($s1)
+
+  li $s5 0
+
+    Loop1:
+      beq $s0 $s3 FinLoop
+      beq $s1 $s4 FinLoop
+      lb $a0 0($s0)
+      beq $a0 $a1 PreLoop2
+      addi $t5 $t5 1
+      addi $s0 $s0 1
+      j Loop1
+
+    PreLoop2:
+    move $s7 $s0
+
+    Loop2:
+      sb $a0, buffer_id($s5) # on stocke dans le buffer_id
+      addi $t6 $t6 1 # on incremente tous les offsets
+      addi $s0 $s0 1
+      addi $s1 $s1 1
+      addi $s5 $s5 1
+      beq $s0 $s3 LabelCopie
+      beq $s1 $s4 LabelCopie
+      lb $a0 0($s0)
+      lb $a1 0($s1)
+      beq $a0 $a1 Loop2
+      move $s1 $s3
+
+      LabelCopie:
+      bge $t6 $t7 PostLoop
+
+      li $s6 0
+
+      # Reset de buffer_id
+      sb $zero buffer_id($s6)
+
+      j Loop
+
+      PostLoop:
+        move $t7 $t6
+
+        li $s6 0
+        Copie:
+          lb $a3 buffer_id($s6)
+          sb $a3 buffer_id_max($s6)
+          addi $s6 $s6 1
+          bne $s6 6 Copie
+
+        li $s6 0
+
+        # Reset de buffer_id
+        sb $zero buffer_id($s6)
+
+        j Loop
+
+  FinLoop:
+    sub $t5 $s7 $s2
+
+    lw $ra 0($sp)
+    lw $a0 4($sp)
+    lw $a1 8($sp)
+    lw $s0 12($sp)
+    lw $s1 16($sp)
+    lw $s2 20($sp)
+    lw $s3 24($sp)
+    lw $s4 28($sp)
+    lw $s5 32($sp)
+    lw $s6 36($sp)
+    lw $s7 40($sp)
+    lw $t6 44($sp)
+    addiu $sp $sp 48
+    jr $ra
 
   #### FIN
 
