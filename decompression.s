@@ -3,16 +3,14 @@
   cre: .asciiz "./test.txt"
 
   buffer_lecture: .space 1600
-  buffer: .space 6
-  buff_txt: .space 5
+  buffer: .space 7
+  buff_txt: .space 6
 
 
 .text
   # N=6 F=5
   li $t0 6
   li $t1 5
-  #compteur position
-  li $t4 0
   #### DEBUT Ouverture et lecture du fichier
 
   li $v0 13
@@ -34,21 +32,27 @@
   jal Testfin
   beq $v0 0 Exit
   jal Initialise_buffer
-
+  li $4 0
   loop:
+    li $a0 '/'
+    li $v0 11
+    syscall
+    la $a0 buffer
+    li $v0 4
+    syscall
     jal extraction
-    jal cas_zero
-    jal Testfin
+    move $s1 $t5
+    andi $s1,$s1,0x0F #convertit le caracteres en chiffre
+    beqz $s1 cas_zero
+    jal cas_autre
     addi $t4 $t4 7
+    jal Testfin
     bne $v0 0 loop
 
-
-  jal close
   j Exit
 
   cas_zero:
     li $s2 1
-    move $s1 $t7
     la $s1 buff_txt
     sb $t7 0($s1)
     jal write
@@ -61,13 +65,36 @@
     j Exit
 
   cas_autre:
+
+    subiu $sp $sp 4
+    sw $ra 0($sp)
+
     li $s1 0
-    la $s2 buff_txt
-    add $s2 $s2 $t5
-    subb $s2 $s2 1
+    andi $s6,$t6,0x0F
+    andi $t5,$t5,0x0F
+    subi $t5 $t5 1
+    la $s4 buffer
+    add $s4 $s4 $t5
+    la $s5 buff_txt
     loopcas:
-      
-      bne $s1 $t6 loopcas
+      lb $s3 0($s4)
+      sb $s3 0($s5)
+      jal shift
+      jal add_buff
+      addi $s4 $s4 1
+      addi $s5 $s5 1
+      addi $s1 $s1 1
+      blt $s1 $s6 loopcas
+    la $s1 buff_txt
+    sb $t7 0($s1)
+    jal shift
+    move $s3 $t7
+    jal add_buff
+    move $s2 $s6
+    jal write
+
+    lw $ra 0($sp)
+    addiu $sp $sp 4
     jr $ra
 
   #rajouter $s3 au debut du tableau
@@ -87,8 +114,8 @@
   shift:
     subiu $sp $sp 12
     sw $ra 0($sp)
-    sw $a1 4($sp)
-    sw $a2 8($sp)
+    sw $s1 4($sp)
+    sw $s2 8($sp)
 
     la $s1 buffer
     lb $s2 4($s1)
@@ -101,10 +128,12 @@
     sb $s2 2($s1)
     lb $s2 0($s1)
     sb $s2 1($s1)
+    li $s2 ' '
+    sb $s2 0($s1)
 
     lw $ra 0($sp)
-    lw $a1 4($sp)
-    lw $a2 8($sp)
+    lw $s1 4($sp)
+    lw $s2 8($sp)
     addiu $sp $sp 12
     jr $ra
 
@@ -121,6 +150,8 @@
     addi $a1 $a1 2
     lb $t6 0($a1)
     addi $a1 $a1 2
+    lb $t7 0($a1)
+
     lb $t7 0($a1)
     lw $a1 0($sp)
     lw $ra 4($sp)
