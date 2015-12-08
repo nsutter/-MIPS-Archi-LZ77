@@ -85,6 +85,12 @@
       addi $s5 $s5 1
       addi $s1 $s1 1
       blt $s1 $s6 loopcas
+    la $s1 buff_txt
+    sb $t7 0($s1)
+    jal write
+    jal shift
+    move $s3 $t7
+    jal add_buff
     move $s2 $s6
     jal write
 
