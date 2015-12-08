@@ -41,7 +41,12 @@
   li $a2 1105
   jal CreerTampon
 
-  jal TestTamponVides
+  jal TestTamponVide
+
+  li $a0 '1'
+  li $a1 '2'
+  li $a2 'm'
+  jal formate
 
   j Exit
 
@@ -172,7 +177,7 @@
     li $v0, 15
     move $a0, $t3
     la $a1, buffer_write
-    li $a2, 20
+    li $a2, 7
     syscall
 
     lw $ra 0($sp)
