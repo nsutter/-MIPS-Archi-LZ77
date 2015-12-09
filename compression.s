@@ -1,5 +1,5 @@
 .data
-  nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier
+  nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier d'entree
   cre: .asciiz "./test.lz77" # nom du fichier de sortie
   parenthese_o: .byte '('
   parenthese_f: .byte ')'
@@ -8,12 +8,12 @@
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
 
-  buffer: .space 1600
-  buffer_tampon: .space 11
-  buffer_id: .space 5
-  buffer_id_max: .space 5
-  buffer_write: .space 7
-  buffer_chiffre: .asciiz "0123456789"
+  buffer: .space 1600 # texte complet
+  buffer_tampon: .space 11 # fenetre actuelle
+  buffer_id: .space 5 # chaine recherchee actuelle
+  buffer_id_max: .space 5 # chaine recherchee maximale
+  buffer_write: .space 7 # chaine a ecrire
+  buffer_chiffre: .asciiz "0123456789" # gestion des chiffres a ecrire
 
 .text
   # N=6 F=5
@@ -28,7 +28,7 @@
   li $a2, 0
   syscall
 
-  # On stocke le descripteur du fichier dans t2
+  # On stocke le descripteur du fichier dans $t2
   move $t2, $v0
 
   move $a0, $t2
@@ -39,63 +39,69 @@
 
   #### FIN
 
-  jal create
+  jal create # creation du fichier de sortie
 
-  li $a3 0 # CreerTampon commence a 0
+  li $a3 0 # la 1ere fenetre commencera a 0
 
   #### DEBUT MainLoop
 
   MainLoop:
     jal CreerTampon
     jal TestTamponVide
-    beq $v0 0 Exit
+    beq $v0 0 FinMainLoop
     jal Recherche
     ble $t7 0 RechercheFail
 
-    lb $a0 buffer_chiffre($t5)
-    lb $a1 buffer_chiffre($t7)
-    la $s0 buffer
+    lb $a0 buffer_chiffre($t5) # position
+    lb $a1 buffer_chiffre($t7) # longueur
+    la $s0 buffer # lettre
     add $s0 $s0 $a3
     addi $s0 $s0 11
     lb $a2 0($s0)
-    jal formate
+    jal formate # ecriture dans le fichier de sortie
     add $a3 $a3 $t7
-    addi $a3 $a3 1
+    addi $a3 $a3 1 # index de la fenetre suivante
     j MainLoop
 
   RechercheFail:
-    li $a0 '0'
-    li $a1 '0'
-    la $s0 buffer
+    li $a0 '0' # position = 0 si la recherche echoue
+    li $a1 '0' # longueur = 0
+    la $s0 buffer # lettre
     add $s0 $s0 $a3
     addi $s0 $s0 6
     lb $a2 0($s0)
-    jal formate
-    addi $a3 $a3 1
+    jal formate # ecriture dans le fichier de sortie
+    addi $a3 $a3 1 # index de la fenetre suivante
     j MainLoop
+
+  FinMainLoop:
+    jal close
+    j Exit
 
   #### FIN
 
   #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_tampon)
 
   CreerTampon:
-    subiu $sp $sp 20
+    subiu $sp $sp 24
     sw $ra 0($sp)
     sw $a0 4($sp)
     sw $a1 8($sp)
     sw $s1 12($sp)
     sw $s2 16($sp)
+    sw $s3 20($sp)
+
 
     move $s1 $a3
 
-    la $s2, buffer
-    add $s2 $s2 $s1
+    la $s2, buffer # chargement du texte
+    add $s2 $s2 $s1 # chargement de l'index du tampon
 
     li $s3 0
 
     add $a1 $t0 $t1
     add $a1 $a1 $s1
-    RappelTampon:
+    RappelTampon: # boucle d'ecriture du tampon
       lb $a0, 0($s2)
       sb $a0, buffer_tampon($s3)
       addi $s1 $s1 1
@@ -107,8 +113,9 @@
     lw $a0 4($sp)
     lw $a1 8($sp)
     lw $s1 12($sp)
-    lw $s2 16($sp)
-    addiu $sp $sp 20
+    lw $s2 16($sp
+    lw $s3 20($sp)
+    addiu $sp $sp 24
     jr $ra
 
   #### FIN
@@ -120,12 +127,12 @@
     sw $s0 0($sp)
     sw $t6 4($sp)
 
-    la $s0, buffer_tampon
+    la $s0, buffer_tampon # chargement de la fenetre
     add $s0 $s0 $t0
 
     lb $t6 0($s0)
 
-    beqz $t6, vide
+    beqz $t6, vide # test du caractere de fin de chaine
 
     li $v0 1
     lw $s0 0($sp)
@@ -142,7 +149,7 @@
 
   #### FIN
 
-  #### DEBUT Recherche (-> t5 la position, t7 la taille)
+  #### DEBUT Recherche (-> $t5 la position, $t7 la taille)
 
   Recherche:
   subiu $sp $sp 48
@@ -161,39 +168,36 @@
 
   li $s5 0 # offset du buffer_id
 
-  #la $s6 buffer_id
-  #la $s7 buffer_id_max
-
   li $t5 0 # position p
   li $t6 0 # longueur en cours
   li $t7 0 # longueur max
 
-  la $s0 buffer_tampon
-  add $s1 $s0 $t0
+  la $s0 buffer_tampon # index mobile de la fenetre de recherche
+  add $s1 $s0 $t0 # index mobile de la fenetre de lecture
 
-  move $s2 $s0
-  move $s3 $s1
+  move $s2 $s0 # index statique du debut de la fenetre de recherche
+  move $s3 $s1 # index statique du debut de la fenetre de lecture
 
-  add $s4 $s1 $t1
+  add $s4 $s1 $t1 # index de la fin de la fenetre
 
   Loop:
 
   li $t6 0
-  lb $a1 0($s1)
+  lb $a1 0($s1) # caractere du tampon de lecture
 
   li $s5 0
 
     Loop1:
-      beq $s0 $s3 FinLoop
+      beq $s0 $s3 FinLoop # fin de boucle si les mauvais index se rencontrent
       beq $s1 $s4 FinLoop
-      lb $a0 0($s0)
+      lb $a0 0($s0) # caractere du tampon de recherche
       beq $a0 $a1 PreLoop2
       addi $t5 $t5 1
       addi $s0 $s0 1
       j Loop1
 
     PreLoop2:
-    move $s7 $s0
+    move $s7 $s0 # taille
 
     Loop2:
       sb $a0, buffer_id($s5) # on stocke dans le buffer_id
@@ -213,16 +217,15 @@
 
       li $s6 0
 
-      # Reset de buffer_id
-      sb $zero buffer_id($s6)
+      sb $zero buffer_id($s6) # reset de buffer_id
 
       j Loop
 
       PostLoop:
-        move $t7 $t6
+        move $t7 $t6 # recuperation de la taille max
 
         li $s6 0
-        Copie:
+        Copie: # copie de buffer_id vers buffer_id_max
           lb $a3 buffer_id($s6)
           sb $a3 buffer_id_max($s6)
           addi $s6 $s6 1
@@ -230,13 +233,12 @@
 
         li $s6 0
 
-        # Reset de buffer_id
-        sb $zero buffer_id($s6)
+        sb $zero buffer_id($s6) # reset de buffer_id
 
         j Loop
 
   FinLoop:
-    sub $t5 $s7 $s2
+    sub $t5 $s7 $s2 # recuperation de la position par soustraction d'adresse
 
     lw $ra 0($sp)
     lw $a0 4($sp)
@@ -255,7 +257,7 @@
 
   #### FIN
 
-  # Creer un fichier avec le nom cre
+  # Creation d'un fichier avec le nom cre
   create:
     subiu $sp $sp 16
     sw $ra 0($sp)
@@ -277,6 +279,7 @@
     addiu $sp $sp 16
     jr $ra
 
+  # Preecriture : ($a0,$a1,$a2) dans $s1
   formate:
     subiu $sp $sp 20
     sw $ra 0($sp)
@@ -307,7 +310,7 @@
     addiu $sp $sp 20
     jr $ra
 
-  # Ecrit dans le fichier lz77 les 10 caracteres dans $s1
+  # Ecriture de $s1 dans le fichier de sortie
   write:
     subiu $sp $sp 16
     sw $ra 0($sp)
@@ -328,7 +331,7 @@
     addiu $sp $sp 16
     jr $ra
 
-  # Ferme les fichiers dans $t2 et $t3
+  # Fermeture des fichiers dans $t2 et $t3
   close:
     subiu $sp $sp 16
     sw $ra 0($sp)
