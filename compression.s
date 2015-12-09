@@ -7,14 +7,13 @@
 
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
-  aaa: .asciiz "aaa"
 
   buffer: .space 1600
   buffer_tampon: .space 11
   buffer_id: .space 5
   buffer_id_max: .space 5
-  #buffer_cre: .space 1600
   buffer_write: .space 7
+  buffer_chiffre: .asciiz "0123456789"
 
 .text
   # N=6 F=5
@@ -44,31 +43,38 @@
 
   li $a3 0 # CreerTampon commence a 0
 
+  #### DEBUT MainLoop
+
   MainLoop:
-  jal CreerTampon
-  jal TestTamponVide
-  beq $v0 0 Exit
-  jal Recherche
-  beq $t7 0 RechercheFail
-  move $a0 $t5
-  move $a1 $t7
-  la $s0 buffer
-  add $s0 $s0 $a3
-  addi $s0 $s0 11
-  lb $a2 0($s0)
-  jal formate
-  j MainLoop
+    jal CreerTampon
+    jal TestTamponVide
+    beq $v0 0 Exit
+    jal Recherche
+    ble $t7 0 RechercheFail
+
+    lb $a0 buffer_chiffre($t5)
+    lb $a1 buffer_chiffre($t7)
+    la $s0 buffer
+    add $s0 $s0 $a3
+    addi $s0 $s0 11
+    lb $a2 0($s0)
+    jal formate
+    add $a3 $a3 $t7
+    addi $a3 $a3 1
+    j MainLoop
 
   RechercheFail:
-  li $a0 '0'
-  li $a1 '0'
-  la $s0 buffer
-  add $s0 $s0 $a3
-  addi $s0 $s0 6
-  lb $a2 0($s0)
-  jal formate
-  addi $a3 $a3 1
-  j MainLoop
+    li $a0 '0'
+    li $a1 '0'
+    la $s0 buffer
+    add $s0 $s0 $a3
+    addi $s0 $s0 6
+    lb $a2 0($s0)
+    jal formate
+    addi $a3 $a3 1
+    j MainLoop
+
+  #### FIN
 
   #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_tampon)
 
@@ -272,11 +278,12 @@
     jr $ra
 
   formate:
-    subiu $sp $sp 16
+    subiu $sp $sp 20
     sw $ra 0($sp)
-    sw $t6 4($sp)
+    sw $t4 4($sp)
     sw $t5 8($sp)
-    sw $t4 12($sp)
+    sw $t6 12($sp)
+    sw $s1 16($sp)
 
     la $s1 buffer_write
     lb $t6 parenthese_o
@@ -292,11 +299,12 @@
     sb $t5 6($s1)
     jal write
 
-    lw $t4 12($sp)
-    lw $t5 8($sp)
-    lw $t6 4($sp)
     lw $ra 0($sp)
-    addiu $sp $sp 16
+    lw $t4 4($sp)
+    lw $t5 8($sp)
+    lw $t6 12($sp)
+    lw $s1 16($sp)
+    addiu $sp $sp 20
     jr $ra
 
   # Ecrit dans le fichier lz77 les 10 caracteres dans $s1
