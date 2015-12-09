@@ -1,9 +1,6 @@
 .data
-  nom_fichier: .asciiz "./Lepetitprince.txt" # nom du fichier d'entree
+  nom_fichier: .space 30
   cre: .asciiz "./test.lz77" # nom du fichier de sortie
-  parenthese_o: .byte '('
-  parenthese_f: .byte ')'
-  virgule: .byte ','
 
   saut_ligne: .asciiz "\n"
   toast: .asciiz "\n-\n"
@@ -20,7 +17,19 @@
   li $t0 6
   li $t1 5
 
+  la $a0 nom_fichier
+  li $a1 30
+  li $v0 8
+  syscall
 
+  # Suppression du caractère nul pour avoir un nom de fichier correct
+  li $s0 0
+  Remove:
+    lb $a3, nom_fichier($s0)
+    addi $s0 $s0 1
+    bnez $a3 Remove
+    subiu $s0 $s0 2
+    sb $0 nom_fichier($s0)
 
   #### DEBUT Ouverture et lecture du fichier
 
@@ -41,6 +50,10 @@
 
   #### FIN
 
+  la $a0 buffer
+  li $v0 4
+  syscall
+
   jal create # creation du fichier de sortie
 
   li $a3 0 # la 1ere fenetre commencera a 0
@@ -48,6 +61,7 @@
   #### DEBUT MainLoop
 
   MainLoop:
+    li $s0 0
     jal CreerTampon
     jal TestTamponVide
     beq $v0 0 FinMainLoop
@@ -58,7 +72,8 @@
     lb $a1 buffer_chiffre($t7) # longueur
     la $s0 buffer # lettre
     add $s0 $s0 $a3
-    addi $s0 $s0 11
+    #addi $s0 $s0 2
+    #add $s0 $s0 $t0
     lb $a2 0($s0)
     jal formate # ecriture dans le fichier de sortie
     add $a3 $a3 $t7
@@ -283,33 +298,20 @@
 
   # Preecriture : ($a0,$a1,$a2) dans $s1
   formate:
-    subiu $sp $sp 20
+    subiu $sp $sp 8
     sw $ra 0($sp)
-    sw $t4 4($sp)
-    sw $t5 8($sp)
-    sw $t6 12($sp)
-    sw $s1 16($sp)
+    sw $s1 4($sp)
 
     la $s1 buffer_write
-    lb $t6 parenthese_o
-    lb $t5 parenthese_f
-    lb $t4 virgule
 
-    sb $t6 0($s1)
-    sb $a0 1($s1)
-    sb $t4 2($s1)
-    sb $a1 3($s1)
-    sb $t4 4($s1)
-    sb $a2 5($s1)
-    sb $t5 6($s1)
+    sb $a0 0($s1)
+    sb $a1 1($s1)
+    sb $a2 2($s1)
     jal write
 
     lw $ra 0($sp)
-    lw $t4 4($sp)
-    lw $t5 8($sp)
-    lw $t6 12($sp)
-    lw $s1 16($sp)
-    addiu $sp $sp 20
+    lw $s1 4($sp)
+    addiu $sp $sp 8
     jr $ra
 
   # Ecriture de $s1 dans le fichier de sortie
@@ -323,7 +325,7 @@
     li $v0, 15
     move $a0, $t3
     la $a1, buffer_write
-    li $a2, 7
+    li $a2, 3
     syscall
 
     lw $ra 0($sp)
