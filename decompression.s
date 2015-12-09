@@ -37,8 +37,11 @@
     addi $s0 $s0 1
     bnez $a3 fichierdecomp
     subi $s0 $s0 1
-    li $a0 '.'
+    li $a0 '2'
     sb $a0,cre($s0)
+    addi $s0 $s0 1
+    li $a0 '.'
+    sb $a0 cre($s0)
     addi $s0 $s0 1
     li $a0 't'
     sb $a0 cre($s0)

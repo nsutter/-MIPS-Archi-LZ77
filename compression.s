@@ -1,10 +1,6 @@
 .data
   nom_fichier: .space 30
-  cre: .asciiz "./test.lz77" # nom du fichier de sortie
-
-  saut_ligne: .asciiz "\n"
-  toast: .asciiz "-"
-  toast2: .asciiz "\n----------------------------------------\n"
+  cre: .space 30 # nom du fichier de sortie
 
   buffer: .space 1600 # texte complet
   buffer_tampon: .space 11 # fenetre actuelle
@@ -31,6 +27,46 @@
     bnez $a3 Remove
     subiu $s0 $s0 2
     sb $0 nom_fichier($s0)
+
+  li $s0 0
+  fichierdecomp:                     # ajoute .txt pour trouver le nom du fichier dans lequel ecrire
+    lb $a3 nom_fichier($s0)
+    sb $a3 cre($s0)
+    addi $s0 $s0 1
+    bnez $a3 fichierdecomp
+    subi $s0 $s0 1
+    li $a0 '.'
+    sb $a0,cre($s0)
+    addi $s0 $s0 1
+    li $a0 'l'
+    sb $a0,cre($s0)
+    addi $s0 $s0 1
+    li $a0 'z'
+    sb $a0,cre($s0)
+    addi $s0 $s0 1
+    li $a0 '7'
+    sb $a0,cre($s0)
+    addi $s0 $s0 1
+    sb $a0,cre($s0)
+
+
+  li $s0 0
+  addext:                           # ajoute .lz77 pour obtenir le fichier a lire
+    lb $a3,nom_fichier($s0)
+    addi $s0 $s0 1
+    bnez $a3, addext
+    subi $s0 $s0 1
+    li $a0 '.'
+    sb $a0,nom_fichier($s0)
+    addi $s0 $s0 1
+    li $a0 't'
+    sb $a0 nom_fichier($s0)
+    addi $s0 $s0 1
+    li $a0 'x'
+    sb $a0 nom_fichier($s0)
+    addi $s0 $s0 1
+    li $a0 't'
+    sb $a0 nom_fichier($s0)
 
   #### DEBUT Ouverture et lecture du fichier
 
@@ -62,15 +98,6 @@
   MainLoop:
     li $s0 0
     jal CreerTampon
-    la $a0 toast
-    li $v0 4
-    syscall
-    la $a0 buffer_tampon
-    li $v0 4
-    syscall
-    la $a0 toast
-    li $v0 4
-    syscall
     jal TestTamponVide
     beq $v0 0 FinMainLoop
     jal Recherche
@@ -266,30 +293,6 @@
   FinLoop:
     sub $t5 $s7 $s2 # recuperation de la position par soustraction d'adresse
     sub $t5 $t0 $t5 # inversion de la position pour decompression.s
-
-    la $a0 buffer_id_max
-    li $v0 4
-    syscall
-
-    la $a0 toast
-    li $v0 4
-    syscall
-
-    move $a0 $t5
-    li $v0 1
-    syscall
-
-    la $a0 toast
-    li $v0 4
-    syscall
-
-    move $a0 $t7
-    li $v0 1
-    syscall
-
-    la $a0 toast2
-    li $v0 4
-    syscall
 
     lw $ra 0($sp)
     lw $a0 4($sp)
