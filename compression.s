@@ -20,6 +20,8 @@
   li $t0 6
   li $t1 5
 
+
+
   #### DEBUT Ouverture et lecture du fichier
 
   li $v0 13
@@ -113,7 +115,7 @@
     lw $a0 4($sp)
     lw $a1 8($sp)
     lw $s1 12($sp)
-    lw $s2 16($sp
+    lw $s2 16($sp)
     lw $s3 20($sp)
     addiu $sp $sp 24
     jr $ra
@@ -130,7 +132,7 @@
     la $s0, buffer_tampon # chargement de la fenetre
     add $s0 $s0 $t0
 
-    lb $t6 0($s0)
+    lb $t6 0($s0) # recuperation du 1ere caractere
 
     beqz $t6, vide # test du caractere de fin de chaine
 
