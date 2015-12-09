@@ -3,8 +3,8 @@
   cre: .asciiz "./test.txt"
 
   buffer_lecture: .space 1600
-  buffer: .space 7
-  buff_txt: .space 6
+  buffer: .space 6
+  buff_txt: .space 5
 
 
 .text
@@ -20,20 +20,22 @@
   syscall
   move $t2, $v0
 
-  #stockage dans buffer du contenu
+  #stockage dans buffer_lecture du contenu du fichier a decompresser
   move $a0, $t2
   li $v0, 14
   la $a1, buffer_lecture
   li $a2, 1600 # taille du buffer en dur
   syscall
 
+  #creation du fichier .txt
   jal create
 
+  #test si il y a encore quelque chose a decompresser
   jal Testfin
-  beq $v0 0 Exit
-  jal Initialise_buffer
-  li $4 0
-  loop:
+  beq $v0 0 Exit                    #si le fichier est vide on fini le programme
+  jal Initialise_buffer             #on remplis le tampon avec que des espaces
+  li $4 0                           #on initialise un compteur correspondant au nb de couple traiter * 7 (un couple: 7 caracteres)
+  loop:                             #boucle de traitement du fichier
     li $a0 '/'
     li $v0 11
     syscall
@@ -45,7 +47,7 @@
     andi $s1,$s1,0x0F #convertit le caracteres en chiffre
     beqz $s1 cas_zero
     jal cas_autre
-    addi $t4 $t4 7
+    addi $t4 $t4 3
     jal Testfin
     bne $v0 0 loop
 
@@ -59,7 +61,7 @@
     jal shift
     move $s3 $t7
     jal add_buff
-    addi $t4 $t4 7
+    addi $t4 $t4 3
     jal Testfin
     bne $v0 0 loop
     j Exit
@@ -81,17 +83,18 @@
       sb $s3 0($s5)
       jal shift
       jal add_buff
-      addi $s4 $s4 1
       addi $s5 $s5 1
       addi $s1 $s1 1
       blt $s1 $s6 loopcas
-    la $s1 buff_txt
-    sb $t7 0($s1)
+    move $s2 $s1
+    jal write
+    la $s5 buff_txt
+    li $s2 1
+    sb $t7 0($s5)
+    jal write
     jal shift
     move $s3 $t7
     jal add_buff
-    move $s2 $s6
-    jal write
 
     lw $ra 0($sp)
     addiu $sp $sp 4
@@ -99,16 +102,18 @@
 
   #rajouter $s3 au debut du tableau
   add_buff:
-    subiu $sp $sp 8
+    subiu $sp $sp 12
     sw $ra 0($sp)
     sw $s1 4($sp)
+    sw $s3 8($sp)
 
     la $s1 buffer
     sb $s3 0($s1)
 
     lw $ra 0($sp)
     lw $s1 4($sp)
-    addiu $sp $sp 8
+    lw $s3 8($sp)
+    addiu $sp $sp 12
     jr $ra
 
   shift:
@@ -145,11 +150,10 @@
 
     la $a1 buffer_lecture
     add $a1 $a1 $t4
-    addi $a1 $a1 1
     lb $t5 0($a1)
-    addi $a1 $a1 2
+    addi $a1 $a1 1
     lb $t6 0($a1)
-    addi $a1 $a1 2
+    addi $a1 $a1 1
     lb $t7 0($a1)
 
     lb $t7 0($a1)
