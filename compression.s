@@ -3,13 +3,14 @@
   cre: .asciiz "./test.lz77" # nom du fichier de sortie
 
   saut_ligne: .asciiz "\n"
-  toast: .asciiz "\n-\n"
+  toast: .asciiz "-"
+  toast2: .asciiz "\n----------------------------------------\n"
 
   buffer: .space 1600 # texte complet
   buffer_tampon: .space 11 # fenetre actuelle
   buffer_id: .space 5 # chaine recherchee actuelle
   buffer_id_max: .space 5 # chaine recherchee maximale
-  buffer_write: .space 7 # chaine a ecrire
+  buffer_write: .space 3 # chaine a ecrire
   buffer_chiffre: .asciiz "0123456789" # gestion des chiffres a ecrire
 
 .text
@@ -22,10 +23,10 @@
   li $v0 8
   syscall
 
-  # Suppression du caractère nul pour avoir un nom de fichier correct
+  # Suppression du caractere nul pour avoir un nom de fichier correct
   li $s0 0
   Remove:
-    lb $a3, nom_fichier($s0)
+    lb $a3 nom_fichier($s0)
     addi $s0 $s0 1
     bnez $a3 Remove
     subiu $s0 $s0 2
@@ -50,9 +51,7 @@
 
   #### FIN
 
-  la $a0 buffer
-  li $v0 4
-  syscall
+  li $a2 0
 
   jal create # creation du fichier de sortie
 
@@ -63,6 +62,15 @@
   MainLoop:
     li $s0 0
     jal CreerTampon
+    la $a0 toast
+    li $v0 4
+    syscall
+    la $a0 buffer_tampon
+    li $v0 4
+    syscall
+    la $a0 toast
+    li $v0 4
+    syscall
     jal TestTamponVide
     beq $v0 0 FinMainLoop
     jal Recherche
@@ -72,8 +80,8 @@
     lb $a1 buffer_chiffre($t7) # longueur
     la $s0 buffer # lettre
     add $s0 $s0 $a3
-    #addi $s0 $s0 2
-    #add $s0 $s0 $t0
+    add $s0 $s0 $t0
+    add $s0 $s0 $t7
     lb $a2 0($s0)
     jal formate # ecriture dans le fichier de sortie
     add $a3 $a3 $t7
@@ -97,7 +105,7 @@
 
   #### FIN
 
-  #### DEBUT CreerTampon ($a2 la position initiale du tampon -> buffer_tampon)
+  #### DEBUT CreerTampon ($a3 la position initiale du tampon -> buffer_tampon)
 
   CreerTampon:
     subiu $sp $sp 24
@@ -169,7 +177,7 @@
   #### DEBUT Recherche (-> $t5 la position, $t7 la taille)
 
   Recherche:
-  subiu $sp $sp 48
+  subiu $sp $sp 52
   sw $ra 0($sp)
   sw $a0 4($sp)
   sw $a1 8($sp)
@@ -182,6 +190,7 @@
   sw $s6 36($sp)
   sw $s7 40($sp)
   sw $t6 44($sp)
+  sw $a3 48($sp)
 
   li $s5 0 # offset du buffer_id
 
@@ -256,6 +265,31 @@
 
   FinLoop:
     sub $t5 $s7 $s2 # recuperation de la position par soustraction d'adresse
+    sub $t5 $t0 $t5 # inversion de la position pour decompression.s
+
+    la $a0 buffer_id_max
+    li $v0 4
+    syscall
+
+    la $a0 toast
+    li $v0 4
+    syscall
+
+    move $a0 $t5
+    li $v0 1
+    syscall
+
+    la $a0 toast
+    li $v0 4
+    syscall
+
+    move $a0 $t7
+    li $v0 1
+    syscall
+
+    la $a0 toast2
+    li $v0 4
+    syscall
 
     lw $ra 0($sp)
     lw $a0 4($sp)
@@ -269,7 +303,8 @@
     lw $s6 36($sp)
     lw $s7 40($sp)
     lw $t6 44($sp)
-    addiu $sp $sp 48
+    lw $a3 48($sp)
+    addiu $sp $sp 52
     jr $ra
 
   #### FIN
@@ -296,7 +331,7 @@
     addiu $sp $sp 16
     jr $ra
 
-  # Preecriture : ($a0,$a1,$a2) dans $s1
+  # Preecriture : ($a0,$a1,$a2) dans buffer_write
   formate:
     subiu $sp $sp 8
     sw $ra 0($sp)
@@ -307,6 +342,7 @@
     sb $a0 0($s1)
     sb $a1 1($s1)
     sb $a2 2($s1)
+
     jal write
 
     lw $ra 0($sp)
@@ -316,11 +352,13 @@
 
   # Ecriture de $s1 dans le fichier de sortie
   write:
-    subiu $sp $sp 16
+    subiu $sp $sp 20
     sw $ra 0($sp)
     sw $a0 4($sp)
     sw $a1 8($sp)
     sw $a2 12($sp)
+    sw $s0 16($sp)
+
 
     li $v0, 15
     move $a0, $t3
@@ -332,16 +370,15 @@
     lw $a0 4($sp)
     lw $a1 8($sp)
     lw $a2 12($sp)
-    addiu $sp $sp 16
+    lw $s0 16($sp)
+    addiu $sp $sp 20
     jr $ra
 
   # Fermeture des fichiers dans $t2 et $t3
   close:
-    subiu $sp $sp 16
+    subiu $sp $sp 8
     sw $ra 0($sp)
     sw $a0 4($sp)
-    sw $a1 8($sp)
-    sw $a2 12($sp)
 
     li   $v0, 16
     move $a0, $t2
@@ -352,9 +389,7 @@
 
     lw $ra 0($sp)
     lw $a0 4($sp)
-    lw $a1 8($sp)
-    lw $a2 12($sp)
-    addiu $sp $sp 16
+    addiu $sp $sp 8
     jr $ra
 
   Exit:
