@@ -1,7 +1,6 @@
 .data
-  cre: .space 40
-
-  nom_fichier: .space 40
+  nom_fichier: .space 40 # nom du fichier d'entree
+  cre: .space 40 # nom du fichier de sortie
 
   buffer_lecture: .space 4800
 
@@ -13,19 +12,20 @@
   # N=6 F=5
   li $t0 6
   li $t1 5
+  
   #### DEBUT Ouverture et lecture du fichier
 
   la $a0 nom_fichier
-  li $a1 30
+  li $a1 40
   li $v0 8
   syscall
 
-  #suppression du /0
+  #suppression du \0
   li $s0 0 # compteur initialise
-  Remove:
+  SuppressionNul:
     lb $a3 nom_fichier($s0)
     addi $s0 $s0 1
-    bnez $a3 Remove                  # Tant qu'on est pas a la fin de la chaine
+    bnez $a3 SuppressionNul          # tant qu'on est pas a la fin de la chaine
     subiu $s0 $s0 2                  # on supprime le caractère de fin de chaine
     sb $0 nom_fichier($s0)
 

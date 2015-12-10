@@ -1,35 +1,39 @@
 .data
-  nom_fichier: .space 30
-  cre: .space 30 # nom du fichier de sortie
+  nom_fichier: .space 40 # nom du fichier d'entree
+  cre: .space 40 # nom du fichier de sortie
 
   buffer: .space 1600 # texte complet
   buffer_tampon: .space 11 # fenetre actuelle
   buffer_id: .space 5 # chaine recherchee actuelle
   buffer_id_max: .space 5 # chaine recherchee maximale
   buffer_write: .space 3 # chaine a ecrire
-  buffer_chiffre: .asciiz "0123456789" # gestion des chiffres a ecrire
+  buffer_chiffre: .asciiz "0123456789" # buffer pour la gestion des chiffres en ascii
 
 .text
-  # N=6 F=5
+  # N=6 F=5 ("variables globales")
+  # autres "variables globales" : $t5 = position dans la fenetre et $t7 = taille de la chaine
   li $t0 6
   li $t1 5
 
+  #### DEBUT Ouverture et lecture du fichier
+
+  # Recuperation du nom de fichier entre par l'utilisateur
   la $a0 nom_fichier
-  li $a1 30
+  li $a1 40
   li $v0 8
   syscall
 
   # Suppression du caractere nul pour avoir un nom de fichier correct
   li $s0 0
-  Remove:
+  SuppressionNul:
     lb $a3 nom_fichier($s0)
     addi $s0 $s0 1
-    bnez $a3 Remove
+    bnez $a3 SuppressionNul
     subiu $s0 $s0 2
     sb $0 nom_fichier($s0)
 
   li $s0 0
-  fichierdecomp:                     # ajoute .txt pour trouver le nom du fichier dans lequel ecrire
+  fichierdecomp: # ajoute .lz77 pour trouver le nom du fichier dans lequel ecrire
     lb $a3 nom_fichier($s0)
     sb $a3 cre($s0)
     addi $s0 $s0 1
@@ -49,9 +53,8 @@
     addi $s0 $s0 1
     sb $a0,cre($s0)
 
-
   li $s0 0
-  addext:                           # ajoute .lz77 pour obtenir le fichier a lire
+  addext: # ajoute .txt pour obtenir le fichier a lire
     lb $a3,nom_fichier($s0)
     addi $s0 $s0 1
     bnez $a3, addext
@@ -68,32 +71,27 @@
     li $a0 't'
     sb $a0 nom_fichier($s0)
 
-  #### DEBUT Ouverture et lecture du fichier
-
+  # Ouverture du fichier d'entre
   li $v0 13
   la $a0, nom_fichier
-  li $a1, 0 # ouverture pour écriture
+  li $a1, 0 # ouverture pour lecture
   li $a2, 0
   syscall
 
-  jal Initialise_buffer # appel de la fonction d'initialisation pour rajouter 6 espaces au debut de buffer
+  jal Initialise_buffer # appel de la fonction d'initialisation pour rajouter 6 espaces au debut du texte
 
-  la $a1 buffer
+  la $a1 buffer # chargement de l'adresse du texte
   addi $a1 $a1 6
 
   # On stocke le descripteur du fichier dans $t2
   move $t2, $v0
 
   move $a0, $t2
-  li $v0, 14
+  li $v0, 14 # chargement du texte
   li $a2, 1600 # taille du buffer en dur
   syscall
 
   #### FIN
-
-  la $a0 buffer
-  li $v0 4
-  syscall
 
   li $a2 0
 
@@ -105,15 +103,15 @@
 
   MainLoop:
     li $s0 0
-    jal CreerTampon
+    jal CreerTampon # creation de la fenetre
     jal TestTamponVide
     beq $v0 0 FinMainLoop
-    jal Recherche
+    jal Recherche # recherche de la plus longue chaine
     ble $t7 0 RechercheFail
 
     lb $a0 buffer_chiffre($t5) # position
     lb $a1 buffer_chiffre($t7) # longueur
-    la $s0 buffer # lettre
+    la $s0 buffer # chargement de la bonne lettre suivante
     add $s0 $s0 $a3
     add $s0 $s0 $t0
     add $s0 $s0 $t7
@@ -125,8 +123,8 @@
 
   RechercheFail:
     li $a0 '0' # position = 0 si la recherche echoue
-    li $a1 '0' # longueur = 0
-    la $s0 buffer # lettre
+    li $a1 '0' # longueur = 0 si la recherche echoue
+    la $s0 buffer # chargement de la bonne lettre suivante
     add $s0 $s0 $a3
     addi $s0 $s0 6
     lb $a2 0($s0)
@@ -135,7 +133,7 @@
     j MainLoop
 
   FinMainLoop:
-    jal close
+    jal close # fermeture des fichiers
     j Exit
 
   #### FIN
@@ -150,7 +148,6 @@
     sw $s1 12($sp)
     sw $s2 16($sp)
     sw $s3 20($sp)
-
 
     move $s1 $a3
 
@@ -283,7 +280,7 @@
       j Loop
 
       PostLoop:
-        move $t7 $t6 # recuperation de la taille max
+        move $t7 $t6 # copie de la taille actuelle vers la taille max
 
         li $s6 0
         Copie: # copie de buffer_id vers buffer_id_max
@@ -342,7 +339,7 @@
     addiu $sp $sp 16
     jr $ra
 
-  # Preecriture : ($a0,$a1,$a2) dans buffer_write
+  # Preecriture : $a0$a1$a2 dans buffer_write
   formate:
     subiu $sp $sp 8
     sw $ra 0($sp)
@@ -361,7 +358,7 @@
     addiu $sp $sp 8
     jr $ra
 
-  # Ecriture de $s1 dans le fichier de sortie
+  # Ecriture de buffer_write dans le fichier de sortie
   write:
     subiu $sp $sp 20
     sw $ra 0($sp)
@@ -403,7 +400,7 @@
     addiu $sp $sp 8
     jr $ra
 
-  # ecrit que des espaces dans le buffer
+  # Ecriture de 6 espaces dans le texte
   Initialise_buffer:
     subiu $sp $sp 12
     sw $a1 0($sp)
