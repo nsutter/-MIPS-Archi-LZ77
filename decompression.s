@@ -10,6 +10,8 @@
 
 .text
   # N=6 F=5
+  # pour augmenter la fenetre il faut aussi augmenter la taille de buffer et buffer.txt
+  # on ne peut cependant pas mettre plus de 9 car il  n'y aurait plus de triplés mais 5 chiffres
   li $t0 6
   li $t1 5
   
@@ -172,29 +174,32 @@
 
   # decalle tout le buffer
   shift:
-    subiu $sp $sp 12
+    subiu $sp $sp 16
     sw $ra 0($sp)
     sw $s1 4($sp)
     sw $s2 8($sp)
+    sw $s3 12($sp)
 
     la $s1 buffer
-    lb $s2 4($s1)
-    sb $s2 5($s1)
-    lb $s2 3($s1)
-    sb $s2 4($s1)
-    lb $s2 2($s1)
-    sb $s2 3($s1)
-    lb $s2 1($s1)
-    sb $s2 2($s1)
-    lb $s2 0($s1)
-    sb $s2 1($s1)
+    move $s3 $t0
+    subi $s3 $s3 1
+
+    loops:
+      subi $s3 $s3 1
+      lb $s2 buffer($s3)
+      addi $s3 $s3 1
+      sb $s2 buffer($s3)
+      subi $s3 $s3 1
+      bnez $s3 loops
+
     li $s2 ' '
     sb $s2 0($s1)
 
     lw $ra 0($sp)
     lw $s1 4($sp)
     lw $s2 8($sp)
-    addiu $sp $sp 12
+    lw $s3 12($sp)
+    addiu $sp $sp 16
     jr $ra
 
   # met dans $t5 p $t6 l et $t7 l
@@ -230,7 +235,7 @@
     loop_init:
       sb $a2 buffer($a1)
       add $a1 $a1 1
-      bne $a1 6 loop_init
+      bne $a1 $t0 loop_init
 
     lw $a1 0($sp)
     lw $ra 4($sp)
