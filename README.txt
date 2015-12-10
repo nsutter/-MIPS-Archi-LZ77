@@ -21,6 +21,8 @@ Toutes nos fonctions utilisent la pile pour éviter les effets de bords sur les 
 ## QUESTIONS
 
 1) Non car le taux de compression dépend du nombre de caractères utilisés dans le document et de la répétition de caractères.
+   On constate qu'avec un tampon de 6 caractères et 5 pour le tampon de lecture la compression des fichiers sont negatifs sauf pour le fichier zero.
+   Le fichier Pirouette.lz77 a 102% d'augmentation de la taille, 127% pour Lepetitprince, 126% pour Voltaire mais une reduction de 43% pour zero.
 
 2) La compression peut être négative dans le cas où, par exemple, on n'utilise que une fois chaque caractère puisqu'un l'algorithme écrit quoi qu'il arrive un triplet. La variante LZSS résout ce problème.
 
