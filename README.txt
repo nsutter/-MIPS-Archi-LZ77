@@ -16,7 +16,7 @@ ajoute lui-même l'extension .lz77, il suffit donc par exemple d'écrire Lepetit
 le fichier Lepetitprince.lz77. De plus, le fichier de sortie s'appellera Lepetitprince2.txt pour ne pas
 écraser le fichier original.
 
-Toutes nos fonctions utilisent la pile pour éviter les effets de bords sur les registres utilisés à l'intérieur.
+Toutes nos fonctions utilisent la pile pour éviter les effets de bords sur les registres utilisés à l'intérieur des fonctions.
 
 ## QUESTIONS
 

@@ -99,16 +99,17 @@
 
   li $a3 0 # la 1ere fenetre commencera a 0
 
-  #### DEBUT MainLoop
+  #### DEBUT de la boucle principale MainLoop
 
   MainLoop:
     li $s0 0
     jal CreerTampon # creation de la fenetre
-    jal TestTamponVide
+    jal TestTamponVide # test de vacuité de la fenetre
     beq $v0 0 FinMainLoop
-    jal Recherche # recherche de la plus longue chaine
+    jal Recherche # recherche de la plus longue chaine dans la fenetre
     ble $t7 0 RechercheFail
 
+    # Cas ou une chaine a ete trouvee
     lb $a0 buffer_chiffre($t5) # position
     lb $a1 buffer_chiffre($t7) # longueur
     la $s0 buffer # chargement de la bonne lettre suivante
@@ -121,6 +122,7 @@
     addi $a3 $a3 1 # index de la fenetre suivante
     j MainLoop
 
+  # Cas ou aucune chaine n'a ete trouvee
   RechercheFail:
     li $a0 '0' # position = 0 si la recherche echoue
     li $a1 '0' # longueur = 0 si la recherche echoue
@@ -139,7 +141,7 @@
   #### FIN
 
   #### DEBUT CreerTampon ($a3 la position initiale du tampon -> buffer_tampon)
-
+  # Recupere la fenetre et la stocke dans buffer_tampon
   CreerTampon:
     subiu $sp $sp 24
     sw $ra 0($sp)
@@ -207,6 +209,7 @@
   #### FIN
 
   #### DEBUT Recherche (-> $t5 la position, $t7 la taille)
+  # Recherche la plus grande occurance d'une chaine en debut de fenetre de lecture
 
   Recherche:
   subiu $sp $sp 56
@@ -250,7 +253,7 @@
       beq $s0 $s3 FinLoop # fin de boucle si les mauvais index se rencontrent
       beq $s1 $s4 FinLoop
       lb $a0 0($s0) # caractere du tampon de recherche
-      beq $a0 $a1 PreLoop2
+      beq $a0 $a1 PreLoop2 # on compare 2 caracteres
       addi $t5 $t5 1
       addi $s0 $s0 1
       j Loop1
@@ -264,16 +267,18 @@
       addi $s0 $s0 1
       addi $s1 $s1 1
       addi $s5 $s5 1
-      beq $s0 $s3 LabelCopie
-      beq $s1 $s4 LabelCopie
+      beq $s0 $s3 LabelCopie # fin de boucle si les mauvais index se rencontrent
+      beq $s1 $s4 LabelCopie # mais avec possibilite de succes dans la recherche
       lb $a0 0($s0)
       lb $a1 0($s1)
-      beq $a0 $a1 Loop2
+      beq $a0 $a1 Loop2 # on recompare 2 caracteres
       move $s1 $s3
 
       LabelCopie:
+      # Si la chaine trouvee est plus longue que la precedante, on va a PostLoop
       bge $t6 $t7 PostLoop
 
+      # Sinon on continue la recherche
       li $s6 0
 
       sb $zero buffer_id($s6) # reset de buffer_id
@@ -294,7 +299,7 @@
 
         sb $zero buffer_id($s6) # reset de buffer_id
 
-        j Loop
+        j Loop # on continue la recherche apres avoir sauvegarde les donnees interessantes
 
   FinLoop:
     sub $t5 $a2 $s2 # recuperation de la position par soustraction d'adresse
@@ -368,7 +373,6 @@
     sw $a1 8($sp)
     sw $a2 12($sp)
     sw $s0 16($sp)
-
 
     li $v0, 15
     move $a0, $t3

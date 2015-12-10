@@ -10,11 +10,11 @@
 
 .text
   # N=6 F=5
-  # pour augmenter la fenetre il faut aussi augmenter la taille de buffer et buffer.txt
-  # on ne peut cependant pas mettre plus de 9 car il  n'y aurait plus de triplés mais 5 chiffres
+  # Pour augmenter la fenetre il faut aussi augmenter la taille de buffer et buffer.txt
+  # On ne peut cependant pas mettre plus de 9 car il n'y aurait plus des triplets mais 5 chiffres
   li $t0 6
   li $t1 5
-  
+
   #### DEBUT Ouverture et lecture du fichier
 
   la $a0 nom_fichier
@@ -22,7 +22,7 @@
   li $v0 8
   syscall
 
-  #suppression du \0
+  # suppression du \0
   li $s0 0 # compteur initialise
   SuppressionNul:
     lb $a3 nom_fichier($s0)
@@ -80,46 +80,46 @@
   syscall
   move $t2, $v0                     # $t2 fichier de lecture
 
-  #stockage dans buffer_lecture du contenu du fichier a decompresser
+  # stockage dans buffer_lecture du contenu du fichier a decompresser
   move $a0, $t2
   li $v0, 14
   la $a1, buffer_lecture
   li $a2, 4800                      # taille du buffer en dur
   syscall
 
-  #creation du fichier .txt
+  # creation du fichier .txt
   jal create                        # creation du fichier $t3 d'ecriture
 
-  #test si il y a encore quelque chose a decompresser
-  jal Testfin                       #Testfin test si le fichier est fini et renvoi dans $v0
+  # test si il y a encore quelque chose a decompresser
+  jal Testfin                       # Testfin test si le fichier est fini et renvoie dans $v0
   beq $v0 0 Exit                    # si le fichier est vide on fini le programme
-  jal Initialise_buffer             # on remplis le tampon avec que des espaces
-  li $4 0                           # on initialise un compteur correspondant au nb de couple traiter * 7 (un couple: 7 caracteres)
+  jal Initialise_buffer             # on remplit le tampon avec que des espaces
+  li $4 0                           # on initialise un compteur correspondant au nb de couple traite * 3 (un couple: 3 caracteres)
   loop:                             # boucle de traitement du fichier
-    jal extraction                  # exrtaction du couple dans le fichier $t5=p $t6=l $t7=caracteres
+    jal extraction                  # extraction du couple dans le fichier $t5=p $t6=l $t7=caracteres
     move $s1 $t5                    # deplacement de la position dans $s1
-    andi $s1,$s1,0x0F               # convertit le caracteres en chiffre
+    andi $s1,$s1,0x0F               # convertit le caractere en chiffre
     beqz $s1 cas_zero               # si le couple est 0,0 cas_zero
     jal cas_autre                   # sinon deuxieme cas
-    addi $t4 $t4 3                  # on incremante le compteur (de 3 car un couple= 3 bytes)
-    jal Testfin                     # on test si on a atteinds la fin du fichier a decompresser
+    addi $t4 $t4 3                  # on incremente le compteur (de 3 car un couple = 3 bytes)
+    jal Testfin                     # on test si on a atteint la fin du fichier a decompresser
     bne $v0 0 loop                  # si non on reboucle
 
   jal close                         # fermeture des fichier $t3 et $t2
   j Exit
 
   cas_zero:
-    li $s2 1                        # nombre de bits a afficher=1 car cas ou 0,0
+    li $s2 1                        # nombre de bits a afficher = 1 car cas ou 0,0
     la $s1 buff_txt
     sb $t7 0($s1)                   # on charge le caracteres dans le buffer d'ecriture
-    jal write                       # on appel la fonction d'ecritre qui prends en param $s1 (nb de bits a ecrire)
+    jal write                       # on appel la fonction d'ecriture qui prend en param $s1 (nb de bits a ecrire)
     jal shift                       # on decale le buffer (shift)
     move $s3 $t7
-    jal add_buff                    # on ajoute au debut du buffer le caractere param: $s3=caractere a ajouter
+    jal add_buff                    # on ajoute au debut du buffer le caractere param: $s3 = caractere a ajouter
     addi $t4 $t4 3                  # on incremente le compteur
     jal Testfin                     # test de la fin du fichier
     bne $v0 0 loop                  # si pas fin retour en haut de la boucle
-    jal close                       # fermeture des fichier $t3 et $t2
+    jal close                       # fermeture des fichiers $t3 et $t2
     j Exit
 
   # dans le cas ou l'on fait une reference au tampon
@@ -130,33 +130,33 @@
     li $s1 0                        # compteur qu'on initialise
     andi $s6,$t6,0x0F               # conversion de l en binaire
     andi $t5,$t5,0x0F               # conversion de p en binaire
-    subi $t5 $t5 1                  # on eneleve un a la position car le tableau commence a 0
+    subi $t5 $t5 1                  # on eneleve 1 a la position car le tableau commence a 0
     la $s4 buffer
     add $s4 $s4 $t5                 # on place $s4 a la bonne position du buffer
     la $s5 buff_txt                 # on charge l'adresse du buffer d'ecriture
     loopcas:                        # boucle de chargement des elts du tampon
       lb $s3 0($s4)
-      sb $s3 0($s5)                 # on sotcke dans le tampon de lecture la caractere a ecrire
+      sb $s3 0($s5)                 # on stocke dans le tampon de lecture le caractere a ecrire
       jal shift                     # decalage du tableau
       jal add_buff                  # ajout du caractere au debut du buffer
       addi $s5 $s5 1
       addi $s1 $s1 1
       blt $s1 $s6 loopcas           # tant que le compteur inferieur a l
-    move $s2 $s1                    # $s2=  nb de bits a ecrire
+    move $s2 $s1                    # $s2 = nb de bits a ecrire
     jal write                       # ecriture des valeurs dans le buffer ecriture
     la $s5 buff_txt
-    li $s2 1                         # $s2= nb de bits a ecrire ici 1
+    li $s2 1                         # $s2 = nb de bits a ecrire ici 1
     sb $t7 0($s5)                    # chargement de $t7 dans le buffer ecriture
-    jal write                        # ecriture du caractère en 3 eme position dans le couple
+    jal write                        # ecriture du caractere en 3 eme position dans le couple
     jal shift
-    move $s3 $t7                     # $s3= valeur a ajouter dans le buffer
+    move $s3 $t7                     # $s3 = valeur a ajouter dans le buffer
     jal add_buff                     # ajout au buffer
 
     lw $ra 0($sp)
     addiu $sp $sp 4
     jr $ra
 
-  #rajouter $s3 au debut du tableau
+  # rajouter $s3 au debut du tableau
   add_buff:
     subiu $sp $sp 12
     sw $ra 0($sp)
@@ -172,7 +172,7 @@
     addiu $sp $sp 12
     jr $ra
 
-  # decalle tout le buffer
+  # decale tout le buffer
   shift:
     subiu $sp $sp 16
     sw $ra 0($sp)
@@ -203,7 +203,7 @@
     jr $ra
 
   # met dans $t5 p $t6 l et $t7 l
-  # prends $t4 en entre qui correpont a la position de p dans le texte
+  # prend $t4 en entre qui correpond a la position de p dans le texte
   extraction:
     subiu $sp $sp 8
     sw $a1 0($sp)
@@ -243,7 +243,7 @@
     addiu $sp $sp 12
     jr $ra
 
-  # test la fin d'un fichier et renvoi dans v0
+  # test la fin d'un fichier et renvoie dans v0
   Testfin:
     subiu $sp $sp 12
     sw $s0 0($sp)
@@ -273,7 +273,7 @@
    	 addiu $sp $sp 12
      jr $ra
 
-  # Creer un fichier avec le nom cre
+  # creer un fichier avec le nom cre
   create:
     subiu $sp $sp 16
     sw $ra 0($sp)
@@ -295,7 +295,7 @@
     addiu $sp $sp 16
     jr $ra
 
-  #ecrit dans le fichier $t3 le contenu de $s1 avec $s2 bits
+  # ecrit dans le fichier $t3 le contenu de $s1 avec $s2 bits
   write:
     subiu $sp $sp 16
     sw $ra 0($sp)
@@ -316,7 +316,7 @@
     addiu $sp $sp 16
     jr $ra
 
-  # Ferme les fichiers dans $t2 et $t3
+  # ferme les fichiers dans $t2 et $t3
   close:
     subiu $sp $sp 16
     sw $ra 0($sp)
