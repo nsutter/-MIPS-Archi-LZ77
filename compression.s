@@ -209,7 +209,7 @@
   #### DEBUT Recherche (-> $t5 la position, $t7 la taille)
 
   Recherche:
-  subiu $sp $sp 52
+  subiu $sp $sp 56
   sw $ra 0($sp)
   sw $a0 4($sp)
   sw $a1 8($sp)
@@ -223,6 +223,7 @@
   sw $s7 40($sp)
   sw $t6 44($sp)
   sw $a3 48($sp)
+  sw $a2 52($sp)
 
   li $s5 0 # offset du buffer_id
 
@@ -281,7 +282,7 @@
 
       PostLoop:
         move $t7 $t6 # copie de la taille actuelle vers la taille max
-
+        move $a2 $s7
         li $s6 0
         Copie: # copie de buffer_id vers buffer_id_max
           lb $a3 buffer_id($s6)
@@ -296,7 +297,7 @@
         j Loop
 
   FinLoop:
-    sub $t5 $s7 $s2 # recuperation de la position par soustraction d'adresse
+    sub $t5 $a2 $s2 # recuperation de la position par soustraction d'adresse
     sub $t5 $t0 $t5 # inversion de la position pour decompression.s
 
     lw $ra 0($sp)
@@ -312,7 +313,8 @@
     lw $s7 40($sp)
     lw $t6 44($sp)
     lw $a3 48($sp)
-    addiu $sp $sp 52
+    lw $a2 52($sp)
+    addiu $sp $sp 56
     jr $ra
 
   #### FIN
