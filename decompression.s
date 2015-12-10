@@ -9,7 +9,6 @@
 
   buff_txt: .space 5
 
-
 .text
   # N=6 F=5
   li $t0 6
