@@ -3,7 +3,7 @@
 
   nom_fichier: .space 40
 
-  buffer_lecture: .space 1600
+  buffer_lecture: .space 4800
 
   buffer: .space 6
 
@@ -82,7 +82,7 @@
   move $a0, $t2
   li $v0, 14
   la $a1, buffer_lecture
-  li $a2, 1600                      # taille du buffer en dur
+  li $a2, 4800                      # taille du buffer en dur
   syscall
 
   #creation du fichier .txt
