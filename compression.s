@@ -76,16 +76,24 @@
   li $a2, 0
   syscall
 
+  jal Initialise_buffer # appel de la fonction d'initialisation pour rajouter 6 espaces au debut de buffer
+
+  la $a1 buffer
+  addi $a1 $a1 6
+
   # On stocke le descripteur du fichier dans $t2
   move $t2, $v0
 
   move $a0, $t2
   li $v0, 14
-  la $a1, buffer
   li $a2, 1600 # taille du buffer en dur
   syscall
 
   #### FIN
+
+  la $a0 buffer
+  li $v0 4
+  syscall
 
   li $a2 0
 
@@ -393,6 +401,26 @@
     lw $ra 0($sp)
     lw $a0 4($sp)
     addiu $sp $sp 8
+    jr $ra
+
+  # ecrit que des espaces dans le buffer
+  Initialise_buffer:
+    subiu $sp $sp 12
+    sw $a1 0($sp)
+    sw $ra 4($sp)
+    sw $a2 8($sp)
+
+    li $a1 0
+    li $a2 ' '
+    loop_init:
+      sb $a2 buffer($a1)
+      add $a1 $a1 1
+      bne $a1 6 loop_init
+
+    lw $a1 0($sp)
+    lw $ra 4($sp)
+    lw $a2 8($sp)
+    addiu $sp $sp 12
     jr $ra
 
   Exit:

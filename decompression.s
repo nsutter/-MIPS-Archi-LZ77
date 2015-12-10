@@ -7,7 +7,7 @@
 
   buffer: .space 6
 
-  buff_txt: .space 5
+  buff_txt: .space 6
 
 .text
   # N=6 F=5
@@ -218,7 +218,7 @@
     addiu $sp $sp 8
     jr $ra
 
-  #ecrit que des espaces dans le buffer
+  # ecrit que des espaces dans le buffer
   Initialise_buffer:
     subiu $sp $sp 12
     sw $a1 0($sp)
