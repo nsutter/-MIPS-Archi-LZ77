@@ -31,8 +31,8 @@ Plus N et F sont grands, plus la fenêtre est grande donc plus les correspondanc
 
 4)
 Points forts:
-- algorithme universel en une passe (l'algorithme de Huffman nécessite par exemple de  connaître une estimation des probabilités d'apparition des caractères)
-- la compression peut être très efficace dans le cas où l'alphabet est réduit       (binaire par exemple) ou lorsqu'il y une répétition des données (exemple du fichier 42.zip qui contient un fichier de 4,3 gigaoctets sur 42 kilooctets https://fr.wikipedia.org/wiki/Bombe_de_d%C3%A9compression)
+- algorithme universel en une passe (l'algorithme de Huffman nécessite par exemple de connaître une estimation des probabilités d'apparition des caractères)
+- la compression peut être très efficace dans le cas où l'alphabet est réduit (binaire par exemple) ou lorsqu'il y une répétition des données (exemple du fichier 42.zip qui contient un fichier de 4,3 gigaoctets sur 42 kilooctets https://fr.wikipedia.org/wiki/Bombe_de_d%C3%A9compression)
 - l'algorithme est de plus simple à comprendre et à implémenter (en tout cas dans un langage de haut niveau)
 
 Points faibles:
